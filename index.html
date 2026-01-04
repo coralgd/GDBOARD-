@@ -1,23 +1,86 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>GDBOARD — Вход/Регистрация</title>
+<meta charset="UTF-8">
+<title>Регистрация / Вход</title>
 </head>
 <body>
-  <h1>GDBOARD</h1>
-  <div>
-    <input id="email" type="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Пароль">
-    <button id="loginBtn">Войти</button>
-    <button id="registerBtn">Зарегистрироваться</button>
-  </div>
-  <div id="message"></div>
+<h1>Регистрация / Вход</h1>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="auth.js" defer></script>
+<input type="email" id="email" placeholder="Email"><br>
+<input type="password" id="password" placeholder="Пароль"><br>
+
+<button id="registerBtn">Зарегистрироваться</button>
+<button id="loginBtn">Войти</button>
+
+<p id="error" style="color:red;"></p>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+// Проверка авторизации и редирект
+auth.onAuthStateChanged(async (user) => {
+  if (!user) return;
+
+  try {
+    const doc = await db.collection("users").doc(user.uid).get();
+    const data = doc.data();
+
+    if (!data.nick || data.situation === "not requested") {
+      // Если ник ещё не выбран — редирект на account.html
+      window.location.href = "account.html";
+    } else {
+      // Если ник уже есть и verified — на main
+      window.location.href = "main.html";
+    }
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+// Регистрация
+document.getElementById("registerBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const errorEl = document.getElementById("error");
+
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    const user = userCredential.user;
+
+    // Создание документа пользователя
+    await db.collection("users").doc(user.uid).set({
+      nick: null,
+      points: 0,
+      situation: "not requested",
+      role: "player"
+    });
+
+    // onAuthStateChanged автоматически сработает и редиректит на account.html
+
+  } catch (err) {
+    console.error(err);
+    errorEl.textContent = err.message;
+  }
+});
+
+// Вход
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const errorEl = document.getElementById("error");
+
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    // onAuthStateChanged автоматически редиректит
+  } catch (err) {
+    console.error(err);
+    errorEl.textContent = err.message;
+  }
+});
+</script>
 </body>
 </html>
