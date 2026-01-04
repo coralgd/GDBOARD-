@@ -1,70 +1,67 @@
-const errorMsg = document.getElementById("errorMsg");
-const moderatorTable = document.getElementById("moderatorTable");
+import { auth, db } from "./firebase-config.js";
 
+// Загрузка игроков
 auth.onAuthStateChanged(async (user) => {
   if (!user) return;
-
   const uid = user.uid;
+  const currentDoc = await db.collection("users").doc(uid).get();
+  const currentUser = currentDoc.data();
 
-  try {
-    // Получаем данные текущего пользователя
-    const doc = await db.collection("users").doc(uid).get();
-    const currentUser = doc.data();
-
-    // Проверка роли
-    if (!currentUser.role || currentUser.role === "player") {
-      // Не модератор → показываем сообщение вместо таблицы
-      errorMsg.textContent = "Модерки нет";
-      moderatorTable.innerHTML = ""; // очищаем таблицу
-      return;
-    }
-
-    // Если модератор → загружаем игроков
-    const snapshot = await db.collection("users").get();
-    moderatorTable.innerHTML = "";
-
-    snapshot.forEach(d => {
-      const data = d.data();
-
-      // Показываем только обычных игроков
-      if (!data.role || (data.role !== "moderator" && data.role !== "elder moderator")) {
-        const tr = document.createElement("tr");
-        const nick = data.nick || "(Без ника)";
-        const points = data.points || 0;
-
-        tr.innerHTML = `
-          <td>${nick}</td>
-          <td id="points-${d.id}">${points}</td>
-          <td>
-            <input type="number" id="input-${d.id}" placeholder="Очки">
-            <button onclick="updatePoints('${d.id}')">Изменить</button>
-          </td>
-        `;
-
-        moderatorTable.appendChild(tr);
-      }
-    });
-
-  } catch (err) {
-    console.error("Ошибка загрузки пользователей:", err);
-    errorMsg.textContent = "Не удалось загрузить пользователей";
+  if (!currentUser.role || currentUser.role === "player") {
+    document.getElementById("errorMsg").textContent = "Модерки нет";
+    return;
   }
+
+  const snapshot = await db.collection("users").get();
+  const table = document.getElementById("moderatorTable");
+  table.innerHTML = `
+    <tr>
+      <th>Ник</th>
+      <th>Очки</th>
+      <th>Действия</th>
+    </tr>
+  `;
+
+  snapshot.forEach(d => {
+    const data = d.data();
+    if (!data.role || (data.role !== "moderator" && data.role !== "elder moderator")) {
+      const tr = document.createElement("tr");
+      const nick = data.nick || "(Без ника)";
+      const points = data.points || 0;
+
+      tr.innerHTML = `
+        <td>${nick}${data.role==='moderator'?' 🔹':''}${data.role==='elder moderator'?' ⭐':''}</td>
+        <td id="points-${d.id}">${points}</td>
+        <td>
+          <input type="number" id="input-${d.id}" placeholder="Очки">
+          <button onclick="updatePoints('${d.id}')">Изменить</button>
+          ${currentUser.role==='elder moderator' ? `
+          <button onclick="blockUser('${d.id}')">Заблокировать</button>
+          <button onclick="makeModerator('${d.id}')">Сделать модератором</button>
+          ` : ''}
+        </td>
+      `;
+      table.appendChild(tr);
+    }
+  });
 });
 
-// Функция изменения очков
-async function updatePoints(targetUid) {
-  const input = document.getElementById(`input-${targetUid}`);
-  const value = parseInt(input.value);
+// Изменение очков
+window.updatePoints = async function(targetUid){
+  const val = parseInt(document.getElementById(`input-${targetUid}`).value);
+  if(isNaN(val)) return;
+  await db.collection("users").doc(targetUid).update({points: val});
+  document.getElementById(`points-${targetUid}`).textContent = val;
+  document.getElementById(`input-${targetUid}`).value = '';
+}
 
-  if (isNaN(value)) return;
+// Заблокировать пользователя
+window.blockUser = async function(targetUid){
+  await db.collection("users").doc(targetUid).update({situation: 'blocked'});
+  document.getElementById(`points-${targetUid}`).textContent += " (заблокирован)";
+}
 
-  const userRef = db.collection("users").doc(targetUid);
-
-  try {
-    await userRef.update({ points: value });
-    document.getElementById(`points-${targetUid}`).textContent = value;
-    input.value = "";
-  } catch (err) {
-    console.error(err);
-  }
+// Сделать модератором
+window.makeModerator = async function(targetUid){
+  await db.collection("users").doc(targetUid).update({role: 'moderator'});
 }
