@@ -19,16 +19,18 @@ auth.onAuthStateChanged(user => {
 
     const data = doc.data();
 
-    // Проверка situation: доступ только для verified
+    // 🔒 Доступ только для verified
     if (data.situation !== "verified") {
+      // Если not requested или requested → на выбор ника
       window.location.href = "account.html";
       return;
     }
 
+    // Всё верно, показываем ник и очки
     nickSpan.textContent = data.nick || "-";
     pointsSpan.textContent = data.points || 0;
 
-    // Определяем место в лидерборде
+    // Вычисляем место
     db.collection("users")
       .where("situation", "==", "verified")
       .orderBy("points", "desc")
