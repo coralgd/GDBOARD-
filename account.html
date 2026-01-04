@@ -2,17 +2,18 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>GDBOARD - Настройки аккаунта</title>
+  <title>GDBOARD — Выбор ника</title>
+</head>
+<body>
+  <h1>Выберите никнейм</h1>
+  <input id="nickname" type="text" placeholder="Ваш ник">
+  <button id="saveNickBtn">Сохранить</button>
+  <div id="message"></div>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="account.js" defer></script>
-</head>
-<body>
-  <h1>Выберите никнейм</h1>
-  <input type="text" id="nickname" placeholder="Ваш никнейм">
-  <button id="saveNickBtn">Сохранить</button>
-  <div id="message"></div>
 </body>
 </html>
