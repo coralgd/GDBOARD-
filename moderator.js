@@ -7,27 +7,30 @@ auth.onAuthStateChanged(async (user) => {
   const uid = user.uid;
 
   try {
+    // Получаем данные текущего пользователя
     const doc = await db.collection("users").doc(uid).get();
     const currentUser = doc.data();
 
-    // Проверка роли текущего пользователя
+    // Проверка роли
     if (!currentUser.role || currentUser.role === "player") {
-      errorMsg.textContent = "Ошибка: игрок не найден";
+      // Не модератор → показываем сообщение вместо таблицы
+      errorMsg.textContent = "Модерки нет";
+      moderatorTable.innerHTML = ""; // очищаем таблицу
       return;
     }
 
-    // Загружаем всех пользователей, кроме модераторов и старших модераторов
+    // Если модератор → загружаем игроков
     const snapshot = await db.collection("users").get();
-
     moderatorTable.innerHTML = "";
+
     snapshot.forEach(d => {
       const data = d.data();
 
       // Показываем только обычных игроков
-      if (!data.role || data.role === "player") {
+      if (!data.role || (data.role !== "moderator" && data.role !== "elder moderator")) {
         const tr = document.createElement("tr");
+        const nick = data.nick || "(Без ника)";
         const points = data.points || 0;
-        const nick = data.nick || "Без ника";
 
         tr.innerHTML = `
           <td>${nick}</td>
