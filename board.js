@@ -23,3 +23,12 @@ async function loadLeaderboard() {
 }
 
 loadLeaderboard();
+import { db } from "./firebase-config.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+(async () => {
+  const snap = await getDocs(collection(db, "users"));
+  console.log("Documents:", snap.docs.map(d => d.data()));
+})();
+
+
