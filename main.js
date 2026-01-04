@@ -2,6 +2,7 @@ const nickSpan = document.getElementById("nick");
 const pointsSpan = document.getElementById("points");
 const rankSpan = document.getElementById("rank");
 const moderatorBtn = document.getElementById("moderatorBtn");
+const moderatorError = document.getElementById("moderatorError");
 
 auth.onAuthStateChanged(async (user) => {
   if (!user) return;
@@ -25,12 +26,13 @@ auth.onAuthStateChanged(async (user) => {
     rank++;
   });
 
-  // Кнопка "Меню модератора" теперь у всех
+  // Кнопка "Меню модератора" у всех
   moderatorBtn.addEventListener("click", () => {
     if (data.role === "moderator" || data.role === "elder moderator") {
       window.location.href = "moderator.html";
     } else {
-      alert("Модерки нет");
+      // Показываем ошибку под кнопкой
+      moderatorError.textContent = "Модерки нет";
     }
   });
 });
