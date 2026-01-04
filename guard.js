@@ -1,47 +1,31 @@
-import { auth, db } from "./firebase-config.js";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+// guard.js
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 onAuthStateChanged(auth, async (user) => {
-  // ❌ Не залогинен
   if (!user) {
-    window.location.href = "login.html";
+    window.location.href = "index.html";
     return;
   }
 
-  try {
-    const userRef = doc(db, "users", user.uid);
-    const snap = await getDoc(userRef);
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
 
-    // ❌ Документа нет
-    if (!snap.exists()) {
-      await signOut(auth);
-      window.location.href = "login.html";
-      return;
-    }
+  if (!snap.exists()) {
+    window.location.href = "index.html";
+    return;
+  }
 
-    const data = snap.data();
+  const data = snap.data();
 
-    // ❌ Аккаунт заблокирован
-    if (data.situation === "blocked") {
-      await signOut(auth);
-      alert("Ваш аккаунт заблокирован");
-      window.location.href = "login.html";
-      return;
-    }
+  if (data.situation === "blocked") {
+    document.body.innerHTML = "<h2>Аккаунт заблокирован</h2>";
+    return;
+  }
 
-    // ❌ Ник не подтверждён
-    if (data.situation !== "verified") {
-      window.location.href = "nickname.html";
-      return;
-    }
-
-    // ✅ Всё ок — доступ разрешён
-    // ничего не делаем, страница загружается
-
-  } catch (err) {
-    console.error("Guard error:", err);
-    await signOut(auth);
-    window.location.href = "login.html";
+  if (data.situation !== "verified") {
+    window.location.href = "nickname.html";
+    return;
   }
 });
