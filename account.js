@@ -1,7 +1,6 @@
-// account.js
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const input = document.getElementById("nick");
 const msg = document.getElementById("msg");
@@ -28,10 +27,10 @@ document.getElementById("send").addEventListener("click", async () => {
   }
 
   try {
-    await updateDoc(doc(db, "users", user.uid), {
+    await setDoc(doc(db, "users", user.uid), {
       nick: nickValue,
       situation: "requested"
-    });
+    }, { merge: true }); // ✅ создаёт или обновляет документ
 
     msg.textContent = "Ник отправлен на проверку";
   } catch (e) {
