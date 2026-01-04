@@ -1,46 +1,47 @@
-// guard.js — строгая проверка доступа, гарантированно
-document.body.style.display = "none"; // скрываем тело до проверки
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
-(async function() {
-  let user = auth.currentUser;
-
-  // Если текущий пользователь ещё не доступен, ждём события
+onAuthStateChanged(auth, async (user) => {
+  // ❌ Не залогинен
   if (!user) {
-    user = await new Promise(resolve => {
-      const unsubscribe = auth.onAuthStateChanged(u => {
-        unsubscribe();
-        resolve(u);
-      });
-    });
-  }
-
-  if (!user) {
-    window.location.href = "index.html";
+    window.location.href = "login.html";
     return;
   }
 
-  const uid = user.uid;
-
   try {
-    const doc = await db.collection("users").doc(uid).get();
-    if (!doc.exists) {
-      window.location.href = "index.html";
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
+
+    // ❌ Документа нет
+    if (!snap.exists()) {
+      await signOut(auth);
+      window.location.href = "login.html";
       return;
     }
 
-    const data = doc.data();
+    const data = snap.data();
 
-    // Только verified пользователи
-    if (!data.nick || data.situation !== "verified") {
-      window.location.href = "account.html";
+    // ❌ Аккаунт заблокирован
+    if (data.situation === "blocked") {
+      await signOut(auth);
+      alert("Ваш аккаунт заблокирован");
+      window.location.href = "login.html";
       return;
     }
 
-    // Всё ок — показываем страницу
-    document.body.style.display = "block";
+    // ❌ Ник не подтверждён
+    if (data.situation !== "verified") {
+      window.location.href = "nickname.html";
+      return;
+    }
+
+    // ✅ Всё ок — доступ разрешён
+    // ничего не делаем, страница загружается
 
   } catch (err) {
-    console.error("Ошибка guard.js:", err);
-    window.location.href = "index.html";
+    console.error("Guard error:", err);
+    await signOut(auth);
+    window.location.href = "login.html";
   }
-})();
+});
