@@ -19,7 +19,7 @@ auth.onAuthStateChanged(async user => {
     }
 
     try {
-      // Проверяем уникальность
+      // Проверяем уникальность ника
       const querySnapshot = await db.collection("users")
         .where("nick", "==", nickname)
         .get();
