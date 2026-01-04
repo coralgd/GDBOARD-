@@ -1,52 +1,79 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const nickSpan = document.getElementById("nick");
-  const pointsSpan = document.getElementById("points");
-  const rankSpan = document.getElementById("rank");
-  const moderatorBtn = document.getElementById("moderatorBtn");
-  const moderatorError = document.getElementById("moderatorError");
+// main.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  auth.onAuthStateChanged(async (user) => {
-    if (!user) return;
+/* 🔧 Firebase config */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+};
 
-    const uid = user.uid;
-    let userData;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    try {
-      const doc = await db.collection("users").doc(uid).get();
-      if (!doc.exists) return;
+/* 📌 DOM */
+const moderatorBtn = document.getElementById("moderatorBtn");
+const errorBox = document.getElementById("menuError");
+const logoutBtn = document.getElementById("logoutBtn");
 
-      userData = doc.data();
+/* 🔐 Auth check */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-      // Заполняем ник и очки
-      nickSpan.textContent = userData.nick || "-";
-      pointsSpan.textContent = userData.points || 0;
+  const snap = await getDoc(doc(db, "accounts", user.uid));
+  if (!snap.exists()) {
+    window.location.href = "login.html";
+    return;
+  }
 
-      // Вычисляем место среди verified
-      const snapshot = await db.collection("users")
-        .where("situation", "==", "verified")
-        .orderBy("points", "desc")
-        .get();
+  const data = snap.data();
 
-      let rank = 1;
-      snapshot.forEach(d => {
-        if (d.id === uid) rankSpan.textContent = rank;
-        rank++;
-      });
+  // блокировка
+  if (data.situation === "blocked") {
+    await signOut(auth);
+    window.location.href = "login.html";
+    return;
+  }
+});
 
-    } catch (err) {
-      console.error("Ошибка при загрузке данных пользователя:", err);
-      return;
-    }
+/* 🧑‍⚖️ Меню модератора */
+moderatorBtn.addEventListener("click", async () => {
+  errorBox.textContent = "";
 
-    // Добавляем обработчик кнопки после загрузки данных
-    moderatorBtn.addEventListener("click", () => {
-      if (!userData) return;
+  const user = auth.currentUser;
+  if (!user) return;
 
-      if (userData.role === "moderator" || userData.role === "elder moderator") {
-        window.location.href = "moderator.html";
-      } else {
-        moderatorError.textContent = "Модерки нет";
-      }
-    });
-  });
+  const snap = await getDoc(doc(db, "accounts", user.uid));
+  if (!snap.exists()) {
+    errorBox.textContent = "Модерки нет";
+    return;
+  }
+
+  const role = snap.data().role;
+
+  if (role === "moderator" || role === "elder_moderator") {
+    window.location.href = "moderator.html";
+  } else {
+    errorBox.textContent = "Модерки нет";
+  }
+});
+
+/* 🚪 Выход */
+logoutBtn.addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.href = "login.html";
 });
