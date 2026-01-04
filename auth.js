@@ -14,7 +14,7 @@ loginBtn.addEventListener("click", () => {
 
   auth.signInWithEmailAndPassword(email, password)
     .then(userCredential => {
-      window.location.href = "main.html";
+      window.location.href = "account.html"; // сразу на страницу выбора ника
     })
     .catch(error => {
       messageDiv.textContent = error.message;
@@ -37,12 +37,12 @@ registerBtn.addEventListener("click", () => {
 
       // Создаём документ пользователя
       db.collection("users").doc(uid).set({
+        nick: "",       // пока пустой
         points: 0,
         email: email
       })
       .then(() => {
-        messageDiv.textContent = "Аккаунт создан!";
-        window.location.href = "main.html";
+        window.location.href = "account.html"; // сразу на выбор ника
       })
       .catch(err => {
         console.error(err);
