@@ -7,7 +7,6 @@ auth.onAuthStateChanged(user => {
   }
 
   db.collection("users")
-    .where("situation", "==", "verified")
     .orderBy("points", "desc")
     .onSnapshot(snapshot => {
       boardTable.innerHTML = "";
@@ -15,7 +14,7 @@ auth.onAuthStateChanged(user => {
       snapshot.forEach(doc => {
         const data = doc.data();
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${rank}</td><td>${data.nick}</td><td>${data.points}</td>`;
+        tr.innerHTML = `<td>${rank}</td><td>${data.email}</td><td>${data.points}</td>`;
         boardTable.appendChild(tr);
         rank++;
       });
