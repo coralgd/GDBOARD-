@@ -1,4 +1,4 @@
-// guard.js — строгая проверка доступа
+// guard.js — строгая проверка доступа, гарантированно
 document.body.style.display = "none"; // скрываем тело до проверки
 
 (async function() {
@@ -15,7 +15,6 @@ document.body.style.display = "none"; // скрываем тело до пров
   }
 
   if (!user) {
-    // не залогинен — на главную страницу
     window.location.href = "index.html";
     return;
   }
@@ -24,22 +23,15 @@ document.body.style.display = "none"; // скрываем тело до пров
 
   try {
     const doc = await db.collection("users").doc(uid).get();
-
     if (!doc.exists) {
-      // Если документа ещё нет — создаём новый с situation = "new"
-      await db.collection("users").doc(uid).set({
-        nick: "",
-        points: 0,
-        situation: "new"
-      });
-      window.location.href = "account.html";
+      window.location.href = "index.html";
       return;
     }
 
     const data = doc.data();
 
-    // Если пользователь не verified — на страницу с ником
-    if (data.situation !== "verified") {
+    // Только verified пользователи
+    if (!data.nick || data.situation !== "verified") {
       window.location.href = "account.html";
       return;
     }
