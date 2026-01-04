@@ -2,7 +2,6 @@ const loginBtn = document.getElementById("loginBtn");
 const registerBtn = document.getElementById("registerBtn");
 const messageDiv = document.getElementById("message");
 
-// Вход
 loginBtn.addEventListener("click", () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -14,15 +13,13 @@ loginBtn.addEventListener("click", () => {
 
   auth.signInWithEmailAndPassword(email, password)
     .then(userCredential => {
-      // После входа сразу на страницу выбора ника
-      window.location.href = "account.html";
+      checkUserState(userCredential.user.uid);
     })
     .catch(error => {
       messageDiv.textContent = error.message;
     });
 });
 
-// Регистрация
 registerBtn.addEventListener("click", () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -36,16 +33,14 @@ registerBtn.addEventListener("click", () => {
     .then(userCredential => {
       const uid = userCredential.user.uid;
 
-      // Создаём документ пользователя с полем nick пустым
       db.collection("users").doc(uid).set({
-        nick: "",        // пустой ник
+        nick: "",
         points: 0,
-        email: email
+        email: email,
+        situation: "not requested"
       })
       .then(() => {
-        console.log("Документ пользователя создан!");
-        // После успешной записи сразу на выбор ника
-        window.location.href = "account.html";
+        checkUserState(uid);
       })
       .catch(err => {
         console.error("Ошибка Firestore:", err);
@@ -56,3 +51,14 @@ registerBtn.addEventListener("click", () => {
       messageDiv.textContent = error.message;
     });
 });
+
+function checkUserState(uid) {
+  db.collection("users").doc(uid).get().then(doc => {
+    const data = doc.data();
+    if (!data.nick || data.situation === "not requested") {
+      window.location.href = "account.html";
+    } else {
+      window.location.href = "main.html";
+    }
+  });
+}
