@@ -1,3 +1,4 @@
+const nickSpan = document.getElementById("nick");
 const pointsSpan = document.getElementById("points");
 const rankSpan = document.getElementById("rank");
 
@@ -11,9 +12,9 @@ auth.onAuthStateChanged(user => {
 
   db.collection("users").doc(uid).get().then(doc => {
     const data = doc.data();
+    nickSpan.textContent = data.nick || "-";
     pointsSpan.textContent = data.points || 0;
 
-    // Вычисляем место среди всех пользователей
     db.collection("users")
       .orderBy("points", "desc")
       .get()
