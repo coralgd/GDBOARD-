@@ -2,7 +2,7 @@ const saveNickBtn = document.getElementById("saveNickBtn");
 const nickInput = document.getElementById("nickname");
 const messageDiv = document.getElementById("message");
 
-auth.onAuthStateChanged(async user => {
+auth.onAuthStateChanged(user => {
   if (!user) {
     window.location.href = "index.html";
     return;
@@ -29,27 +29,15 @@ auth.onAuthStateChanged(async user => {
         return;
       }
 
-      const userDoc = await userDocRef.get();
-      if (!userDoc.exists) {
-        messageDiv.textContent = "Ошибка: пользователь не найден!";
-        return;
-      }
-
-      const data = userDoc.data();
-      if (data.nick && data.nick.length > 0) {
-        messageDiv.textContent = "Никнейм уже выбран!";
-        return;
-      }
-
-      // Сохраняем ник и ставим situation = requested
-      await userDocRef.update({
-        nick: nickname,
-        situation: "requested"
-      });
-
-      messageDiv.textContent = "Ник сохранён! Ожидайте подтверждения администратора.";
-      nickInput.disabled = true;
+      // Обновляем документ с ником
+      await userDocRef.update({ nick: nickname });
+      messageDiv.textContent = "Ник сохранён! Переходим на главную...";
       saveNickBtn.disabled = true;
+      nickInput.disabled = true;
+
+      setTimeout(() => {
+        window.location.href = "main.html";
+      }, 1000);
 
     } catch (error) {
       console.error(error);
