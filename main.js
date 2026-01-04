@@ -1,45 +1,52 @@
-const nickSpan = document.getElementById("nick");
-const pointsSpan = document.getElementById("points");
-const rankSpan = document.getElementById("rank");
-const moderatorBtn = document.getElementById("moderatorBtn");
-const moderatorError = document.getElementById("moderatorError");
+document.addEventListener("DOMContentLoaded", () => {
+  const nickSpan = document.getElementById("nick");
+  const pointsSpan = document.getElementById("points");
+  const rankSpan = document.getElementById("rank");
+  const moderatorBtn = document.getElementById("moderatorBtn");
+  const moderatorError = document.getElementById("moderatorError");
 
-auth.onAuthStateChanged(async (user) => {
-  if (!user) return;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
 
-  const uid = user.uid;
-  let data;
+    const uid = user.uid;
+    let userData;
 
-  try {
-    const doc = await db.collection("users").doc(uid).get();
-    data = doc.data();
+    try {
+      const doc = await db.collection("users").doc(uid).get();
+      if (!doc.exists) return;
 
-    nickSpan.textContent = data.nick || "-";
-    pointsSpan.textContent = data.points || 0;
+      userData = doc.data();
 
-    // Вычисляем место среди verified
-    const snapshot = await db.collection("users")
-      .where("situation", "==", "verified")
-      .orderBy("points", "desc")
-      .get();
+      // Заполняем ник и очки
+      nickSpan.textContent = userData.nick || "-";
+      pointsSpan.textContent = userData.points || 0;
 
-    let rank = 1;
-    snapshot.forEach(d => {
-      if (d.id === uid) rankSpan.textContent = rank;
-      rank++;
-    });
+      // Вычисляем место среди verified
+      const snapshot = await db.collection("users")
+        .where("situation", "==", "verified")
+        .orderBy("points", "desc")
+        .get();
 
-  } catch (err) {
-    console.error("Ошибка при загрузке данных пользователя:", err);
-  }
+      let rank = 1;
+      snapshot.forEach(d => {
+        if (d.id === uid) rankSpan.textContent = rank;
+        rank++;
+      });
 
-  // Обработчик кнопки — только после загрузки данных
-  moderatorBtn.addEventListener("click", () => {
-    if (!data) return; // если что-то не загрузилось
-    if (data.role === "moderator" || data.role === "elder moderator") {
-      window.location.href = "moderator.html";
-    } else {
-      moderatorError.textContent = "Модерки нет";
+    } catch (err) {
+      console.error("Ошибка при загрузке данных пользователя:", err);
+      return;
     }
+
+    // Добавляем обработчик кнопки после загрузки данных
+    moderatorBtn.addEventListener("click", () => {
+      if (!userData) return;
+
+      if (userData.role === "moderator" || userData.role === "elder moderator") {
+        window.location.href = "moderator.html";
+      } else {
+        moderatorError.textContent = "Модерки нет";
+      }
+    });
   });
 });
