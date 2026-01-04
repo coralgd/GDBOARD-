@@ -9,13 +9,28 @@ auth.onAuthStateChanged(user => {
   }
 
   const uid = user.uid;
+  const userDocRef = db.collection("users").doc(uid);
 
-  db.collection("users").doc(uid).get().then(doc => {
+  userDocRef.get().then(doc => {
+    if (!doc.exists) {
+      window.location.href = "index.html";
+      return;
+    }
+
     const data = doc.data();
+
+    // Проверка situation: доступ только для verified
+    if (data.situation !== "verified") {
+      window.location.href = "account.html";
+      return;
+    }
+
     nickSpan.textContent = data.nick || "-";
     pointsSpan.textContent = data.points || 0;
 
+    // Определяем место в лидерборде
     db.collection("users")
+      .where("situation", "==", "verified")
       .orderBy("points", "desc")
       .get()
       .then(snapshot => {
