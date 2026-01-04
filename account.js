@@ -1,20 +1,53 @@
-// account.js
-import { auth, db } from "./firebase-config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const statusContainer = document.getElementById("statusContainer");
+const inputContainer = document.getElementById("inputContainer");
+const nickInput = document.getElementById("nickInput");
+const sendNickBtn = document.getElementById("sendNickBtn");
 
-const input = document.getElementById("nick");
-const msg = document.getElementById("msg");
+auth.onAuthStateChanged(async (user) => {
+  if (!user) return;
 
-onAuthStateChanged(auth, (user) => {
-  if (!user) location.href = "index.html";
+  const uid = user.uid;
+  const userRef = db.collection("users").doc(uid);
+
+  try {
+    const doc = await userRef.get();
+    const data = doc.data();
+
+    // Если ник уже отправлен
+    if (data.nick) {
+      inputContainer.style.display = "none";
+
+      if (data.situation === "verified") {
+        statusContainer.innerHTML = `<p>Ник: <strong>${data.nick}</strong> — Верифицировано ✅</p>`;
+      } else {
+        statusContainer.innerHTML = `<p>Ник: <strong>${data.nick}</strong> — Отправлено ⏳</p>`;
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
 });
 
-document.getElementById("send").onclick = async () => {
-  await updateDoc(doc(db, "users", auth.currentUser.uid), {
-    nick: input.value.trim(),
-    situation: "requested"
-  });
+// Отправка ника
+sendNickBtn.addEventListener("click", async () => {
+  const nick = nickInput.value.trim();
+  if (!nick) return;
 
-  msg.textContent = "Ник отправлен";
-};
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userRef = db.collection("users").doc(user.uid);
+
+  try {
+    await userRef.set({ nick: nick, situation: "pending" }, { merge: true });
+
+    // Скрываем форму сразу после отправки
+    inputContainer.style.display = "none";
+
+    statusContainer.innerHTML = `<p>Ник: <strong>${nick}</strong> — Отправлено ⏳</p>`;
+
+  } catch (err) {
+    console.error("Ошибка при отправке ника:", err);
+  }
+});
