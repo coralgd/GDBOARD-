@@ -1,44 +1,50 @@
 const errorMsg = document.getElementById("errorMsg");
 const moderatorTable = document.getElementById("moderatorTable");
 
-auth.onAuthStateChanged(async user => {
+auth.onAuthStateChanged(async (user) => {
   if (!user) return;
 
   const uid = user.uid;
-  const doc = await db.collection("users").doc(uid).get();
-  const data = doc.data();
 
-  // Проверяем роль
-  if (!data.role || data.role === "player") {
-    errorMsg.textContent = "Ошибка: игрок не найден";
-    return;
-  }
-
-  // moderator → загружаем всех обычных игроков
   try {
-    const snapshot = await db.collection("users")
-      .where("role", "==", "player")
-      .get();
+    const doc = await db.collection("users").doc(uid).get();
+    const currentUser = doc.data();
+
+    // Проверка роли текущего пользователя
+    if (!currentUser.role || currentUser.role === "player") {
+      errorMsg.textContent = "Ошибка: игрок не найден";
+      return;
+    }
+
+    // Загружаем всех пользователей, кроме модераторов и старших модераторов
+    const snapshot = await db.collection("users").get();
 
     moderatorTable.innerHTML = "";
-
     snapshot.forEach(d => {
-      const userData = d.data();
-      const tr = document.createElement("tr");
+      const data = d.data();
 
-      tr.innerHTML = `
-        <td>${userData.nick}</td>
-        <td id="points-${d.id}">${userData.points || 0}</td>
-        <td>
-          <input type="number" id="input-${d.id}" placeholder="Очки">
-          <button onclick="updatePoints('${d.id}')">Изменить</button>
-        </td>
-      `;
-      moderatorTable.appendChild(tr);
+      // Показываем только обычных игроков
+      if (!data.role || data.role === "player") {
+        const tr = document.createElement("tr");
+        const points = data.points || 0;
+        const nick = data.nick || "Без ника";
+
+        tr.innerHTML = `
+          <td>${nick}</td>
+          <td id="points-${d.id}">${points}</td>
+          <td>
+            <input type="number" id="input-${d.id}" placeholder="Очки">
+            <button onclick="updatePoints('${d.id}')">Изменить</button>
+          </td>
+        `;
+
+        moderatorTable.appendChild(tr);
+      }
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("Ошибка загрузки пользователей:", err);
+    errorMsg.textContent = "Не удалось загрузить пользователей";
   }
 });
 
