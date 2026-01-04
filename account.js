@@ -11,6 +11,10 @@ auth.onAuthStateChanged(user => {
   const uid = user.uid;
   const userDocRef = db.collection("users").doc(uid);
 
+  userDocRef.get().then(doc => {
+    if (doc.exists) nickInput.value = doc.data().nick || "";
+  });
+
   saveNickBtn.addEventListener("click", async () => {
     const nickname = nickInput.value.trim();
     if (!nickname) {
@@ -19,26 +23,18 @@ auth.onAuthStateChanged(user => {
     }
 
     try {
-      // Проверяем уникальность ника
-      const querySnapshot = await db.collection("users")
-        .where("nick", "==", nickname)
-        .get();
-
+      const querySnapshot = await db.collection("users").where("nick", "==", nickname).get();
       if (!querySnapshot.empty) {
         messageDiv.textContent = "Никнейм занят!";
         return;
       }
 
-      // Обновляем документ с ником
-      await userDocRef.update({ nick: nickname });
+      await userDocRef.update({ nick: nickname, situation: "requested" });
       messageDiv.textContent = "Ник сохранён! Переходим на главную...";
-      saveNickBtn.disabled = true;
       nickInput.disabled = true;
+      saveNickBtn.disabled = true;
 
-      setTimeout(() => {
-        window.location.href = "main.html";
-      }, 1000);
-
+      setTimeout(() => { window.location.href = "main.html"; }, 1000);
     } catch (error) {
       console.error(error);
       messageDiv.textContent = "Произошла ошибка. Попробуйте ещё раз.";
