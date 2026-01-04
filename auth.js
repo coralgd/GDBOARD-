@@ -1,70 +1,30 @@
-// Получаем элементы формы
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const registerBtn = document.getElementById("registerBtn");
-const loginBtn = document.getElementById("loginBtn");
+// auth.js
+import { auth, db } from "./firebase-config.js";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Регистрация пользователя
-registerBtn.addEventListener("click", async () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
+const email = document.getElementById("email");
+const password = document.getElementById("password");
 
-  if (!email || !password) {
-    alert("Введите email и пароль");
-    return;
-  }
+document.getElementById("register").onclick = async () => {
+  const res = await createUserWithEmailAndPassword(auth, email.value, password.value);
 
-  try {
-    // Создаём пользователя в Firebase Auth
-    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-    const user = userCredential.user;
-    const uid = user.uid;
+  await setDoc(doc(db, "users", res.user.uid), {
+    situation: "not requested",
+    role: "player",
+    points: 0
+  });
 
-    // Создаём документ пользователя в Firestore со всеми полями
-    await db.collection("users").doc(uid).set({
-      nick: "",                  // пока ник не выбран
-      points: 0,                 // начальные очки
-      situation: "not requested",// статус ника
-      role: "player"             // роль по умолчанию
-    });
+  location.href = "account.html";
+};
 
-    alert("Аккаунт успешно создан!");
-    // Перенаправляем на страницу выбора ника
-    window.location.href = "account.html";
+document.getElementById("login").onclick = async () => {
+  const res = await signInWithEmailAndPassword(auth, email.value, password.value);
+  const snap = await getDoc(doc(db, "users", res.user.uid));
+  const data = snap.data();
 
-  } catch (error) {
-    console.error(error);
-    alert("Ошибка при регистрации: " + error.message);
-  }
-});
-
-// Вход пользователя
-loginBtn.addEventListener("click", async () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-
-  if (!email || !password) {
-    alert("Введите email и пароль");
-    return;
-  }
-
-  try {
-    await auth.signInWithEmailAndPassword(email, password);
-    // После входа проверяем статус ника
-    const user = auth.currentUser;
-    const doc = await db.collection("users").doc(user.uid).get();
-    const data = doc.data();
-
-    if (!data.nick) {
-      window.location.href = "account.html"; // выбрать ник
-    } else if (data.situation !== "verified") {
-      window.location.href = "account.html"; // ждем верификации
-    } else {
-      window.location.href = "main.html"; // основной сайт
-    }
-
-  } catch (error) {
-    console.error(error);
-    alert("Ошибка при входе: " + error.message);
-  }
-});
+  location.href = data.situation === "verified" ? "main.html" : "account.html";
+};
