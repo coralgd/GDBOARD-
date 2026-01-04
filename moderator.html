@@ -1,28 +1,20 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Меню модератора</title>
+<meta charset="UTF-8">
+<title>Меню модератора</title>
 </head>
 <body>
-  <h1>Меню модератора</h1>
-  <div id="errorMsg" style="color:red"></div>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>Ник</th>
-        <th>Очки</th>
-        <th>Изменить очки</th>
-      </tr>
-    </thead>
-    <tbody id="moderatorTable"></tbody>
-  </table>
+<h2>Меню модератора</h2>
+<table id="moderatorTable">
+  <tr>
+    <th>Ник</th>
+    <th>Очки</th>
+    <th>Действия</th>
+  </tr>
+</table>
+<div id="errorMsg" style="color:red; margin-top:5px;"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="guard.js" defer></script>
-  <script src="moderator.js" defer></script>
+<script type="module" src="moderator.js"></script>
 </body>
 </html>
