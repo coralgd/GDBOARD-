@@ -7,6 +7,11 @@ loginBtn.addEventListener("click", () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
+  if (!email || !password) {
+    messageDiv.textContent = "Введите email и пароль!";
+    return;
+  }
+
   auth.signInWithEmailAndPassword(email, password)
     .then(userCredential => {
       checkAccess(userCredential.user.uid);
@@ -45,7 +50,6 @@ registerBtn.addEventListener("click", () => {
         console.error(err);
         messageDiv.textContent = "Ошибка при создании документа пользователя.";
       });
-
     })
     .catch(error => {
       messageDiv.textContent = error.message;
