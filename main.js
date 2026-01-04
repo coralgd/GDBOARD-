@@ -8,30 +8,37 @@ auth.onAuthStateChanged(async (user) => {
   if (!user) return;
 
   const uid = user.uid;
-  const doc = await db.collection("users").doc(uid).get();
-  const data = doc.data();
+  let data;
 
-  nickSpan.textContent = data.nick || "-";
-  pointsSpan.textContent = data.points || 0;
+  try {
+    const doc = await db.collection("users").doc(uid).get();
+    data = doc.data();
 
-  // Вычисляем место среди verified
-  const snapshot = await db.collection("users")
-    .where("situation", "==", "verified")
-    .orderBy("points", "desc")
-    .get();
+    nickSpan.textContent = data.nick || "-";
+    pointsSpan.textContent = data.points || 0;
 
-  let rank = 1;
-  snapshot.forEach(d => {
-    if (d.id === uid) rankSpan.textContent = rank;
-    rank++;
-  });
+    // Вычисляем место среди verified
+    const snapshot = await db.collection("users")
+      .where("situation", "==", "verified")
+      .orderBy("points", "desc")
+      .get();
 
-  // Кнопка "Меню модератора" у всех
+    let rank = 1;
+    snapshot.forEach(d => {
+      if (d.id === uid) rankSpan.textContent = rank;
+      rank++;
+    });
+
+  } catch (err) {
+    console.error("Ошибка при загрузке данных пользователя:", err);
+  }
+
+  // Обработчик кнопки — только после загрузки данных
   moderatorBtn.addEventListener("click", () => {
+    if (!data) return; // если что-то не загрузилось
     if (data.role === "moderator" || data.role === "elder moderator") {
       window.location.href = "moderator.html";
     } else {
-      // Показываем ошибку под кнопкой
       moderatorError.textContent = "Модерки нет";
     }
   });
