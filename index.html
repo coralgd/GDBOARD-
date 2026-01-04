@@ -2,22 +2,18 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>GDBOARD — Вход/Регистрация</title>
+  <title>GDBOARD — вход</title>
 </head>
 <body>
-  <h1>GDBOARD</h1>
-  <div>
-    <input id="email" type="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Пароль">
-    <button id="loginBtn">Войти</button>
-    <button id="registerBtn">Зарегистрироваться</button>
-  </div>
-  <div id="message"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="auth.js" defer></script>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Пароль">
+
+<button id="register">Регистрация</button>
+<button id="login">Вход</button>
+
+<!-- ❗ ВАЖНО: ТОЛЬКО type="module" -->
+<script type="module" src="auth.js"></script>
+
 </body>
 </html>
