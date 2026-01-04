@@ -1,13 +1,9 @@
-// guard.js — строгая проверка доступа
-
 // Скрываем тело страницы до проверки
 document.body.style.display = "none";
 
-(async function() {
-  const user = auth.currentUser;
-
-  // Если пользователь не залогинен, редирект на вход
+auth.onAuthStateChanged(async (user) => {
   if (!user) {
+    // Не залогинен → на страницу входа
     window.location.href = "index.html";
     return;
   }
@@ -26,6 +22,7 @@ document.body.style.display = "none";
 
     // Проверка состояния
     if (!data.nick || data.situation !== "verified") {
+      // Ник не выбран или не verified → на страницу выбора ника
       window.location.href = "account.html";
       return;
     }
@@ -37,4 +34,4 @@ document.body.style.display = "none";
     console.error("Ошибка guard.js:", err);
     window.location.href = "index.html";
   }
-})();
+});
