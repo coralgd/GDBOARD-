@@ -1,4 +1,3 @@
-const nickSpan = document.getElementById("nick");
 const pointsSpan = document.getElementById("points");
 const rankSpan = document.getElementById("rank");
 
@@ -9,29 +8,19 @@ auth.onAuthStateChanged(user => {
   }
 
   const uid = user.uid;
+
   db.collection("users").doc(uid).get().then(doc => {
     const data = doc.data();
+    pointsSpan.textContent = data.points || 0;
 
-    if (!data.nick || data.situation !== "verified") {
-      // Ник не выбран или не подтверждён
-      window.location.href = "account.html";
-      return;
-    }
-
-    nickSpan.textContent = data.nick;
-    pointsSpan.textContent = data.points;
-
-    // Вычисляем место пользователя
+    // Вычисляем место среди всех пользователей
     db.collection("users")
-      .where("situation", "==", "verified")
       .orderBy("points", "desc")
       .get()
       .then(snapshot => {
         let rank = 1;
         snapshot.forEach(d => {
-          if (d.id === uid) {
-            rankSpan.textContent = rank;
-          }
+          if (d.id === uid) rankSpan.textContent = rank;
           rank++;
         });
       });
