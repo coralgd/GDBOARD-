@@ -11,10 +11,11 @@ auth.onAuthStateChanged(async (user) => {
   try {
     const doc = await userDocRef.get();
     const data = doc.data();
+
     nickSpan.textContent = data.nick || "-";
     pointsSpan.textContent = data.points || 0;
 
-    // Определяем место пользователя среди всех verified
+    // Вычисляем место среди verified пользователей
     const snapshot = await db.collection("users")
       .where("situation", "==", "verified")
       .orderBy("points", "desc")
