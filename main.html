@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>GDBOARD - Главная</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="main.js" defer></script>
+</head>
+<body>
+  <h1>Главная страница</h1>
+  <div>
+    <p>Ваш ник: <span id="nick"></span></p>
+    <p>Очки: <span id="points"></span></p>
+    <p>Место: <span id="rank"></span></p>
+    <button onclick="location.href='board.html'">Лидерборд</button>
+    <button onclick="location.href='account.html'">Настройки аккаунта</button>
+  </div>
+</body>
+</html>

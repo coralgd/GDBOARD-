@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>GDBOARD - Лидерборд</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="board.js" defer></script>
+</head>
+<body>
+  <h1>Лидерборд</h1>
+  <table border="1">
+    <thead>
+      <tr><th>Место</th><th>Ник</th><th>Очки</th></tr>
+    </thead>
+    <tbody id="boardTable"></tbody>
+  </table>
+  <button onclick="location.href='main.html'">Главная</button>
+</body>
+</html>
