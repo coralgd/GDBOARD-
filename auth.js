@@ -4,7 +4,7 @@ const messageDiv = document.getElementById("message");
 
 // Вход
 loginBtn.addEventListener("click", () => {
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
   if (!email || !password) {
@@ -14,7 +14,8 @@ loginBtn.addEventListener("click", () => {
 
   auth.signInWithEmailAndPassword(email, password)
     .then(userCredential => {
-      window.location.href = "account.html"; // сразу на страницу выбора ника
+      // После входа сразу на страницу выбора ника
+      window.location.href = "account.html";
     })
     .catch(error => {
       messageDiv.textContent = error.message;
@@ -23,7 +24,7 @@ loginBtn.addEventListener("click", () => {
 
 // Регистрация
 registerBtn.addEventListener("click", () => {
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
   if (!email || !password) {
@@ -35,17 +36,19 @@ registerBtn.addEventListener("click", () => {
     .then(userCredential => {
       const uid = userCredential.user.uid;
 
-      // Создаём документ пользователя
+      // Создаём документ пользователя с полем nick пустым
       db.collection("users").doc(uid).set({
-        nick: "",       // пока пустой
+        nick: "",        // пустой ник
         points: 0,
         email: email
       })
       .then(() => {
-        window.location.href = "account.html"; // сразу на выбор ника
+        console.log("Документ пользователя создан!");
+        // После успешной записи сразу на выбор ника
+        window.location.href = "account.html";
       })
       .catch(err => {
-        console.error(err);
+        console.error("Ошибка Firestore:", err);
         messageDiv.textContent = "Ошибка при создании документа пользователя.";
       });
     })
