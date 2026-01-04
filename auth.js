@@ -1,64 +1,70 @@
-const loginBtn = document.getElementById("loginBtn");
+// Получаем элементы формы
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
 const registerBtn = document.getElementById("registerBtn");
-const messageDiv = document.getElementById("message");
+const loginBtn = document.getElementById("loginBtn");
 
-loginBtn.addEventListener("click", () => {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+// Регистрация пользователя
+registerBtn.addEventListener("click", async () => {
+  const email = emailInput.value;
+  const password = passwordInput.value;
 
   if (!email || !password) {
-    messageDiv.textContent = "Введите email и пароль!";
+    alert("Введите email и пароль");
     return;
   }
 
-  auth.signInWithEmailAndPassword(email, password)
-    .then(userCredential => {
-      checkUserState(userCredential.user.uid);
-    })
-    .catch(error => {
-      messageDiv.textContent = error.message;
+  try {
+    // Создаём пользователя в Firebase Auth
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    const user = userCredential.user;
+    const uid = user.uid;
+
+    // Создаём документ пользователя в Firestore со всеми полями
+    await db.collection("users").doc(uid).set({
+      nick: "",                  // пока ник не выбран
+      points: 0,                 // начальные очки
+      situation: "not requested",// статус ника
+      role: "player"             // роль по умолчанию
     });
+
+    alert("Аккаунт успешно создан!");
+    // Перенаправляем на страницу выбора ника
+    window.location.href = "account.html";
+
+  } catch (error) {
+    console.error(error);
+    alert("Ошибка при регистрации: " + error.message);
+  }
 });
 
-registerBtn.addEventListener("click", () => {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+// Вход пользователя
+loginBtn.addEventListener("click", async () => {
+  const email = emailInput.value;
+  const password = passwordInput.value;
 
   if (!email || !password) {
-    messageDiv.textContent = "Введите email и пароль!";
+    alert("Введите email и пароль");
     return;
   }
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(userCredential => {
-      const uid = userCredential.user.uid;
-
-      db.collection("users").doc(uid).set({
-        nick: "",
-        points: 0,
-        email: email,
-        situation: "not requested"
-      })
-      .then(() => {
-        checkUserState(uid);
-      })
-      .catch(err => {
-        console.error("Ошибка Firestore:", err);
-        messageDiv.textContent = "Ошибка при создании документа пользователя.";
-      });
-    })
-    .catch(error => {
-      messageDiv.textContent = error.message;
-    });
-});
-
-function checkUserState(uid) {
-  db.collection("users").doc(uid).get().then(doc => {
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    // После входа проверяем статус ника
+    const user = auth.currentUser;
+    const doc = await db.collection("users").doc(user.uid).get();
     const data = doc.data();
-    if (!data.nick || data.situation === "not requested") {
-      window.location.href = "account.html";
+
+    if (!data.nick) {
+      window.location.href = "account.html"; // выбрать ник
+    } else if (data.situation !== "verified") {
+      window.location.href = "account.html"; // ждем верификации
     } else {
-      window.location.href = "main.html";
+      window.location.href = "main.html"; // основной сайт
     }
-  });
-}
+
+  } catch (error) {
+    console.error(error);
+    alert("Ошибка при входе: " + error.message);
+  }
+});
