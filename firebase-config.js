@@ -1,5 +1,5 @@
-// Firebase конфиг для GDBOARD
-// Используем compat версию для совместимости с остальными скриптами
+// firebase-config.js
+// Подключаем Firebase SDK
 const firebaseConfig = {
   apiKey: "AIzaSyBs8vPfGYlPd-5C69h3SBCs-93gR_iolvs",
   authDomain: "gdboard-coral.firebaseapp.com",
@@ -11,5 +11,7 @@ const firebaseConfig = {
 
 // Инициализация Firebase
 firebase.initializeApp(firebaseConfig);
+
+// Сохраняем ссылки на сервисы
 const auth = firebase.auth();
 const db = firebase.firestore();
